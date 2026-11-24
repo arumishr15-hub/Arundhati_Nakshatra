@@ -22,11 +22,11 @@ Manual way:
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env          # paste your ANTHROPIC_API_KEY
+cp .env.example .env          # paste a free GEMINI_API_KEY or GROQ_API_KEY
 python backend/main.py
 ```
 
-Agents 2–4 need an Anthropic API key in `.env` (get one at console.anthropic.com).
+Agents 2–4 need a free Gemini or Groq key, set in `.env` or in the app under My Profile → AI Settings.
 Without it, the app runs in a basic offline mode with rule-based text.
 
 ## Use it on your iPhone

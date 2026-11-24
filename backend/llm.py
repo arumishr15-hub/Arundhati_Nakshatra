@@ -1,11 +1,10 @@
 """
-One streaming interface for three AI providers:
+One streaming interface for two AI providers:
 
   gemini     — Google Gemini API (free key: https://aistudio.google.com/apikey)
   groq       — Groq (free key: https://console.groq.com/keys)
-  anthropic  — Claude (paid key: https://console.anthropic.com)
 
-Settings come from .env:  LLM_PROVIDER, GEMINI_API_KEY, GROQ_API_KEY, ANTHROPIC_API_KEY, LLM_MODEL (optional).
+Settings come from .env:  LLM_PROVIDER, GEMINI_API_KEY, GROQ_API_KEY, LLM_MODEL (optional).
 Model names change often, so for Gemini and Groq the best available model is discovered from the API.
 """
 from __future__ import annotations
@@ -26,7 +25,6 @@ except Exception:  # pragma: no cover
 PROVIDERS = {
     "gemini": {"label": "Google Gemini (free)", "key": "GEMINI_API_KEY", "get_key": "https://aistudio.google.com/apikey"},
     "groq": {"label": "Groq (free)", "key": "GROQ_API_KEY", "get_key": "https://console.groq.com/keys"},
-    "anthropic": {"label": "Anthropic Claude (paid)", "key": "ANTHROPIC_API_KEY", "get_key": "https://console.anthropic.com"},
 }
 _model_cache: dict[str, str] = {}
 
@@ -80,8 +78,6 @@ def model_name() -> str:
     p = provider()
     if os.environ.get("LLM_MODEL"):
         return os.environ["LLM_MODEL"]
-    if p == "anthropic":
-        return os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5-5")
     if p in _model_cache:
         return _model_cache[p]
     try:
@@ -135,12 +131,6 @@ def stream(system: str, messages: list[dict], max_tokens: int = 4000) -> Iterato
     if not key:
         raise LLMError("No AI key set. Add a free Gemini or Groq key in My Profile.")
     model = model_name()
-    if p == "anthropic":
-        import anthropic
-        with anthropic.Anthropic(api_key=key).messages.stream(model=model, max_tokens=max_tokens, system=system,
-                                                              messages=messages) as s:
-            yield from s.text_stream
-        return
     if p == "gemini":
         body = {"systemInstruction": {"parts": [{"text": system}]},
                 "contents": [{"role": "model" if m["role"] == "assistant" else "user", "parts": [{"text": m["content"]}]} for m in messages],
@@ -177,4 +167,4 @@ def status() -> dict:
             "key_hint": (k[:6] + "…" + k[-4:]) if len(k) > 12 else "",
             "keys_set": {name: bool(key_for(name)) for name in PROVIDERS},
             "providers": {n: {"label": s["label"], "get_key": s["get_key"]} for n, s in PROVIDERS.items()},
-            "model": os.environ.get("LLM_MODEL") or _model_cache.get(p) or ("auto" if p != "anthropic" else os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-5-5"))}
+            "model": os.environ.get("LLM_MODEL") or _model_cache.get(p) or "auto"}

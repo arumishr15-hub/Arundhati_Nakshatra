@@ -54,4 +54,4 @@ Make changes on your Mac, then run `git add . && git commit -m "update" && git p
 
 ## Your existing saved kundalis
 Kundalis saved on your Mac stay in the local `data` folder. The online app starts empty — re-enter the birth
-details there (or ask Claude to add an import tool).
+details there.

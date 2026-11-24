@@ -255,7 +255,7 @@ def admin_ai(request: Request):
 
 @app.put("/api/admin/ai")
 def put_settings(request: Request, body: dict):
-    """body: {provider: gemini|groq|anthropic, api_key?: str, model?: str, free_questions?: int}"""
+    """body: {provider: gemini|groq, api_key?: str, model?: str, free_questions?: int}"""
     need_admin(request)
     prov = (body.get("provider") or "").strip().lower()
     key = (body.get("api_key") or "").strip()

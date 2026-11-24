@@ -2,7 +2,7 @@
 Kundali chat: answer questions about one saved kundali.
 
 1. Retrieve the guide sections relevant to the question (keyword + topic map; Hindi/Hinglish words included).
-2. With an AI key: send chart facts + those sections + recent chat to the AI (Gemini / Groq / Claude) and stream the answer.
+2. With an AI key: send chart facts + those sections + recent chat to the AI (Gemini / Groq) and stream the answer.
 3. Without a key: answer directly from the retrieved guide sections.
 """
 from __future__ import annotations

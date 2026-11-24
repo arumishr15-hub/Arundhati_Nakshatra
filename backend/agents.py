@@ -7,7 +7,7 @@ The four Arundhati Nakshatra agents.
   Agent 3  BookingAgent      — conversational agent that books a kundali consultation with you
   Agent 4  NoteTakerAgent    — distils every report into the crux + remedies
 
-Agents 2-4 use Claude (set ANTHROPIC_API_KEY). Without a key they fall back to a basic
+Agents 2-4 use the AI provider set in My Profile (Gemini or Groq). Without a key they fall back to a basic
 rule-based mode so the app still runs.
 """
 from __future__ import annotations
@@ -29,7 +29,7 @@ def llm_available() -> bool:
 
 
 def full_reports_available() -> bool:
-    """Long multi-part reports need a provider with a generous limit (Gemini or Claude, not Groq's free tier)."""
+    """Long multi-part reports need a provider with a generous limit (Gemini, not Groq's free tier)."""
     return llm.available() and not llm.is_compact()
 
 
@@ -403,32 +403,7 @@ class BookingAgent:
         if not llm_available():
             return {"reply": "Please use the booking form to choose a date and time — it only takes a moment. 🌸", "booked": None}
         msgs = [{"role": m["role"], "content": m["content"]} for m in messages]
-        if llm.provider() == "anthropic":
-            return self._chat_claude(msgs, pid)
         return self._chat_json(msgs, pid)
-
-    def _chat_claude(self, msgs: list, pid: str | None) -> dict:
-        import anthropic
-        booked = None
-        client = anthropic.Anthropic(api_key=llm.key_for("anthropic"))
-        for _ in range(8):
-            r = client.messages.create(model=llm.model_name(), max_tokens=1200, system=self._system(pid),
-                                       tools=BOOKING_TOOLS, messages=msgs)
-            if r.stop_reason != "tool_use":
-                return {"reply": "".join(b.text for b in r.content if b.type == "text"), "booked": booked}
-            msgs.append({"role": "assistant", "content": [
-                {"type": "text", "text": b.text} if b.type == "text" else
-                {"type": "tool_use", "id": b.id, "name": b.name, "input": b.input}
-                for b in r.content if b.type in ("text", "tool_use")]})
-            results = []
-            for b in r.content:
-                if b.type == "tool_use":
-                    out = self._tool(b.name, b.input, pid)
-                    if b.name == "book_appointment" and isinstance(out, dict) and out.get("ok"):
-                        booked = out["appointment"]
-                    results.append({"type": "tool_result", "tool_use_id": b.id, "content": json.dumps(out, default=str)})
-            msgs.append({"role": "user", "content": results})
-        return {"reply": "Sorry, I got stuck. Please try again or use the booking form.", "booked": booked}
 
     def _chat_json(self, msgs: list, pid: str | None) -> dict:
         """Tool use for providers without native tools: the model replies with an ACTION line we execute."""
@@ -545,7 +520,7 @@ def _planet_line(p: dict, meaning: dict) -> str:
 
 
 def offline_report(k: dict, chart: str) -> str:
-    out = ["> Basic offline mode — add ANTHROPIC_API_KEY to `.env` for the full AI analysis.\n"]
+    out = ["> Basic offline mode — add a free Gemini or Groq key in My Profile for the full AI analysis.\n"]
     if chart == "D1":
         lg = k["lagna"]
         out.append(f"## Lagna\n{lg['sign_name']} rising at {lg['degree']} ({lg['nakshatra']} pada {lg['pada']}). Lagna lord **{lg['lord']}**.")

@@ -382,9 +382,9 @@ async function viewMe() {
     pill.textContent = st.ai ? "On" : "Off"; pill.className = "ai-pill " + (st.ai ? "on" : "off");
     const pv = $("input[name=provider]:checked")?.value || st.provider;
     const info = st.providers[pv];
-    $("#getKey").href = info.get_key; $("#getKey").textContent = pv === "anthropic" ? "Get a key ↗" : "Get a free key ↗";
+    $("#getKey").href = info.get_key; $("#getKey").textContent = "Get a free key ↗";
     $("#keySaved").innerHTML = st.keys_set[pv] ? `✓ A key is saved${pv === st.provider && st.key_hint ? ` (${esc(st.key_hint)})` : ""} — leave the box empty to keep it.` : "";
-    keyIn.placeholder = st.keys_set[pv] ? "•••••••• saved" : (pv === "gemini" ? "AIza…" : pv === "groq" ? "gsk_…" : "sk-ant-…");
+    keyIn.placeholder = st.keys_set[pv] ? "•••••••• saved" : (pv === "groq" ? "gsk_…" : "AIza…");
     $$(".prov").forEach((l) => l.classList.toggle("sel", $("input", l).checked));
     if (msg !== undefined) $("#aiMsg").innerHTML = msg;
   };
