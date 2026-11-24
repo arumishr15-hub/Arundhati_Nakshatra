@@ -1,0 +1,8 @@
+fastapi>=0.110
+uvicorn>=0.29
+pyswisseph>=2.10
+anthropic>=0.40
+timezonefinder>=6.5
+certifi>=2024.2
+geonamescache>=2.0
+psycopg[binary]>=3.2

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#f7a8c4" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="icon" href="/static/icons/icon-192.png" />
+<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Nakshatra" />
+<title>Arundhati Nakshatra — Vedic Astrology</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Great+Vibes&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+<div class="stars"></div>
+<header class="topbar">
+  <a class="brand" href="#/" data-nav="home">
+    <svg viewBox="0 0 48 40" class="logo"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7a8c4"/><stop offset="1" stop-color="#c084fc"/></linearGradient></defs>
+      <path d="M24 6 C29 13 29 22 24 30 C19 22 19 13 24 6Z" fill="url(#lg)"/>
+      <path d="M24 30 C17 28 11 22 10 14 C17 15 22 21 24 30Z" fill="url(#lg)" opacity=".8"/>
+      <path d="M24 30 C31 28 37 22 38 14 C31 15 26 21 24 30Z" fill="url(#lg)" opacity=".8"/>
+      <path d="M24 31 C16 32 8 29 3 23 C10 21 18 25 24 31Z" fill="url(#lg)" opacity=".55"/>
+      <path d="M24 31 C32 32 40 29 45 23 C38 21 30 25 24 31Z" fill="url(#lg)" opacity=".55"/>
+      <circle cx="24" cy="3" r="1.6" fill="#e9a23b"/></svg>
+    <span><b>Arundhati</b> Nakshatra</span>
+  </a>
+  <nav>
+    <a href="#/" data-nav="home">New Kundali</a>
+    <a href="#/saved" data-nav="saved">Saved</a>
+    <a href="#/me" data-nav="me">Admin</a>
+    <a href="/logout" id="logoutLink" hidden>Log out</a>
+  </nav>
+  <span id="aiBadge" class="badge">…</span>
+</header>
+
+<main id="app"></main>
+
+<!-- ========== templates ========== -->
+<template id="tpl-home">
+  <section class="hero">
+    <p class="eyebrow">✿ Vedic Jyotish · K.N. Rao Method · Lahiri Ayanamsa ✿</p>
+    <p class="script">Namaste, beautiful soul</p>
+    <h1>Create your <em>Janam Kundali</em></h1>
+    <p class="sub">Enter birth details. Four agents will then build your charts, analyse them, take notes with remedies, and book a consultation.</p>
+  </section>
+  <form id="intake" class="card intake" autocomplete="off">
+    <div class="grid2">
+      <label>Full name<input name="name" required placeholder="e.g. Arundhati Sharma" /></label>
+      <label>Gender
+        <select name="gender"><option value="">Prefer not to say</option><option>Female</option><option>Male</option><option>Other</option></select>
+      </label>
+      <label>Date of birth (DOB)<input type="date" name="date" required /></label>
+      <label>Time of birth (TOB)<input type="time" name="time" step="1" required /></label>
+    </div>
+    <label class="place">Place of birth (POB)
+      <input name="place" id="placeInput" required placeholder="Start typing a city, town or village…" autocomplete="off" spellcheck="false" />
+      <ul id="placeList" class="suggest" hidden></ul>
+    </label>
+    <details class="adv">
+      <summary>Coordinates &amp; timezone <span id="coordHint" class="muted"></span></summary>
+      <div class="grid3">
+        <label>Latitude<input name="lat" type="number" step="0.0001" required /></label>
+        <label>Longitude<input name="lon" type="number" step="0.0001" required /></label>
+        <label>Timezone<input name="tz" required value="Asia/Kolkata" /></label>
+      </div>
+    </details>
+    <button class="btn primary big" type="submit">✿ Reveal my Kundali</button>
+    <p id="intakeErr" class="err"></p>
+  </form>
+  <div class="agents-strip">
+    <div><span>1</span><b>Kundali Agent</b><small>D1, D9, D10, D7, Chandra, Chalit · Vimshottari &amp; Chara Dasha</small></div>
+    <div><span>2</span><b>Analyst Agent</b><small>Lagna &amp; Navamsha by K.N. Rao principles</small></div>
+    <div><span>3</span><b>Booking Agent</b><small>Book a consultation with me</small></div>
+    <div><span>4</span><b>Note-Taker</b><small>Crux of all reports + remedies</small></div>
+  </div>
+</template>
+
+<template id="tpl-saved">
+  <section class="hero small"><h1 id="savedTitle">My Kundalis</h1><p class="sub" id="savedSub">Kundalis created on this device. Only you can see them.</p></section>
+  <div id="savedList" class="saved-grid"></div>
+</template>
+
+<template id="tpl-profile">
+  <section class="profile-head card">
+    <div>
+      <h2 id="pName"></h2>
+      <p id="pMeta" class="muted"></p>
+    </div>
+    <div class="chips" id="pChips"></div>
+  </section>
+  <div class="tabs">
+    <button data-tab="kundali" class="active"><span>1</span> Kundali &amp; Dasha</button>
+    <button data-tab="analysis"><span>2</span> Analysis</button>
+    <button data-tab="book"><span>3</span> Book Appointment</button>
+    <button data-tab="notes"><span>4</span> Notes &amp; Remedies</button>
+  </div>
+
+  <section class="tab" id="tab-kundali">
+    <div class="charts" id="charts"></div>
+    <div class="card"><h3>Graha Sthiti — Planetary Positions</h3><div class="tablewrap"><table id="planetTable"></table></div></div>
+    <div class="card"><h3>Vimshottari Dasha</h3><p id="dashaHead" class="muted"></p><div id="dasha"></div></div>
+    <div class="kn-grid">
+      <div class="card"><h3>Jaimini — Chara Karakas</h3><div id="jaimini"></div></div>
+      <div class="card"><h3>Functional Nature <small class="muted">(Laghu Parashari)</small></h3><div id="functional"></div></div>
+    </div>
+    <div class="card"><h3>Jaimini Chara Dasha <small class="muted">(K.N. Rao method)</small></h3><p id="charaHead" class="muted"></p><div id="chara"></div></div>
+    <div class="card"><h3>Double Transit — Jupiter &amp; Saturn</h3><p class="muted">K.N. Rao: an event matures when the dasha promises it <i>and</i> both Jupiter and Saturn influence the house (by occupation or aspect). Houses influenced by both, for the next 3 years:</p><div class="tablewrap"><table id="transit"></table></div></div>
+  </section>
+
+  <section class="tab" id="tab-analysis" hidden>
+    <div class="subtabs">
+      <button data-chart="D1" class="active">Lagna Chart (D1)</button>
+      <button data-chart="D9">Navamsha (D9)</button>
+      <button type="button" class="open-chat">✨ Ask about this chart</button>
+    </div>
+    <div class="card report-card" id="reportCard">
+      <div class="report-actions"><button class="btn primary" id="genReport">Generate analysis</button><span class="muted" id="reportState"></span></div>
+      <article class="md" id="report"></article>
+    </div>
+  </section>
+
+  <section class="tab" id="tab-notes" hidden>
+    <div class="card">
+      <div class="report-actions"><button class="btn primary" id="genNotes">Create notes &amp; remedies</button><span class="muted" id="notesState">Works best after the D1 and D9 analyses are generated.</span></div>
+      <article class="md" id="notes"></article>
+    </div>
+  </section>
+
+  <section class="tab" id="tab-book" hidden>
+    <div class="book-grid">
+      <div class="card">
+        <h3>Chat with the Booking Agent</h3>
+        <div id="bookLog" class="chatlog"></div>
+        <form id="bookChat" class="chatform"><input placeholder="Hi, I'd like a full kundali reading this Saturday…" required /><button class="btn primary">Send</button></form>
+      </div>
+      <div class="card">
+        <div id="astroCard" class="astro"></div>
+        <h3>Or book directly</h3>
+        <form id="bookForm" class="stack">
+          <select name="service" id="svcSelect" required></select>
+          <div class="grid2">
+            <input type="date" name="date" id="bookDate" required />
+            <select name="time" id="slotSelect" required><option value="">Pick a date first</option></select>
+          </div>
+          <div class="grid2"><input name="name" placeholder="Name" required /><input name="phone" placeholder="Phone" required /></div>
+          <input name="email" type="email" placeholder="Email (optional)" />
+          <select name="mode"><option>Video call</option><option>Phone call</option><option>In person</option></select>
+          <textarea name="notes" rows="2" placeholder="What would you like to discuss?"></textarea>
+          <button class="btn primary">Confirm booking</button>
+          <p id="bookMsg"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+</template>
+
+<template id="tpl-chat">
+  <button class="chat-fab open-chat" title="Ask about this kundali"><span>✨</span> Ask your Kundali</button>
+  <aside class="chat-panel" id="chatPanel" hidden>
+    <header>
+      <div class="chat-avatar">✿</div>
+      <div><b>Ask your Kundali</b><small id="chatWho"></small></div>
+      <span class="q-pill" id="qPill" hidden></span>
+      <button class="chat-x" id="chatClose" title="Close">×</button>
+    </header>
+    <div class="chat-body" id="chatLog"></div>
+    <div class="chat-chips" id="chatChips"></div>
+    <div class="q-out" id="qOut" hidden>
+      <p><b>You've used your free questions 🌸</b><br><span class="muted">Book a consultation, or enter a question code from your astrologer.</span></p>
+      <button type="button" class="btn primary" id="qBook">📅 Book a consultation</button>
+      <form id="qCode" class="q-code"><input placeholder="LOTUS-XXXX" autocapitalize="characters" spellcheck="false" required /><button class="btn ghost">Unlock</button></form>
+      <p class="tiny" id="qMsg"></p>
+    </div>
+    <form id="chatForm" class="chat-input">
+      <textarea rows="1" placeholder="Ask about your kundali…" required></textarea>
+      <button class="btn primary" title="Send">➤</button>
+    </form>
+    <p class="chat-foot" id="chatFoot"></p>
+  </aside>
+</template>
+
+<template id="tpl-me">
+  <section class="hero small admin-hero">
+    <div><h1>Admin</h1><p class="sub">Only you can see this page — AI assistant, free questions, question codes, your profile and appointments.</p></div>
+    <button class="btn ghost" id="adminLogout" hidden>🔒 Lock admin</button>
+  </section>
+
+  <!-- locked -->
+  <form class="card admin-lock" id="adminLock" hidden>
+    <div class="lock-icon">🔒</div>
+    <h2 id="lockTitle">Admin area</h2>
+    <p class="muted" id="lockHint">Enter your admin password.</p>
+    <input type="password" name="password" placeholder="Admin password" required autocomplete="current-password" />
+    <button class="btn primary big" id="lockBtn">Unlock</button>
+    <p class="err" id="lockErr"></p>
+  </form>
+
+  <div id="adminBody" hidden>
+    <div class="admin-grid">
+      <!-- AI assistant -->
+      <section class="card ai-card">
+        <div class="ai-head">
+          <div class="ai-orb">✨</div>
+          <div><h3>AI Assistant</h3><p class="muted tiny">Answers questions in the chat box</p></div>
+          <span class="ai-pill" id="aiPill">Off</span>
+        </div>
+        <form id="aiForm">
+          <p class="step"><span>1</span> Choose a provider</p>
+          <div class="prov-grid" id="provGrid">
+            <label class="prov"><input type="radio" name="provider" value="gemini" /><b>Google Gemini</b><small>Free · recommended</small></label>
+            <label class="prov"><input type="radio" name="provider" value="groq" /><b>Groq</b><small>Free · very fast</small></label>
+            <label class="prov"><input type="radio" name="provider" value="anthropic" /><b>Claude</b><small>Paid · best quality</small></label>
+          </div>
+          <p class="step"><span>2</span> Paste your key <a id="getKey" target="_blank" rel="noopener">Get a free key ↗</a></p>
+          <div class="key-row"><input name="api_key" id="keyInput" type="password" placeholder="Paste key here" autocomplete="off" spellcheck="false" />
+            <button type="button" class="btn ghost tiny" id="keyEye">Show</button></div>
+          <p class="tiny muted" id="keySaved"></p>
+          <details class="adv-model"><summary>Advanced</summary><input name="model" placeholder="Model name (leave empty = automatic)" /></details>
+          <button class="btn primary big" id="aiSave">Save &amp; test</button>
+          <p id="aiMsg" class="tiny"></p>
+        </form>
+      </section>
+
+      <!-- free questions -->
+      <section class="card">
+        <h3>🎁 Free questions</h3>
+        <p class="muted tiny">Every kundali gets this many free AI questions in the chat. Answers from the built-in guide are always free.</p>
+        <form id="freeForm" class="free-row">
+          <button type="button" class="step-btn" data-d="-1">−</button>
+          <input type="number" name="free_questions" id="freeNum" min="0" max="1000" />
+          <button type="button" class="step-btn" data-d="1">+</button>
+          <button class="btn primary">Save</button>
+        </form>
+        <p id="freeMsg" class="tiny ok"></p>
+      </section>
+
+      <!-- question codes -->
+      <section class="card codes-card">
+        <h3>🎟️ Question codes</h3>
+        <p class="muted tiny">Give a code to a client — they type it in the chat to unlock more AI questions for their kundali. Each code works once.</p>
+        <form id="codeForm" class="code-form">
+          <label>Codes<input type="number" name="count" value="1" min="1" max="50" /></label>
+          <label>Questions each<input type="number" name="questions" value="10" min="1" max="500" /></label>
+          <label class="wide">For (optional)<input name="note" placeholder="e.g. client name" maxlength="60" /></label>
+          <button class="btn primary">Create</button>
+        </form>
+        <div id="codeList" class="code-list"></div>
+      </section>
+    </div>
+
+    <div class="book-grid">
+      <form id="meForm" class="card stack">
+        <h3>👤 My astrologer profile</h3>
+        <p class="muted tiny">Shown to clients on the booking page and used by the booking assistant.</p>
+        <div class="grid2"><label>Name<input name="name" /></label><label>Title<input name="title" /></label></div>
+        <label>Bio<textarea name="bio" rows="4"></textarea></label>
+        <div class="grid2"><label>Phone<input name="phone" /></label><label>Email<input name="email" /></label></div>
+        <div class="grid2"><label>Location / Mode<input name="location" /></label><label>Languages (comma separated)<input name="languages" /></label></div>
+        <div class="grid3"><label>Start time<input type="time" name="start_time" /></label><label>End time<input type="time" name="end_time" /></label><label>Slot (minutes)<input type="number" name="slot_minutes" /></label></div>
+        <label>Working days</label>
+        <div class="days" id="daysBox"></div>
+        <label>Services (one per line: Name | minutes)<textarea name="services" rows="5"></textarea></label>
+        <label>Timezone<input name="timezone" /></label>
+        <button class="btn primary">Save profile</button><span id="meMsg" class="muted"></span>
+      </form>
+      <div class="card"><h3>📅 Appointments</h3><div id="apptList"></div></div>
+    </div>
+  </div>
+</template>
+
+<script src="/static/chart.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

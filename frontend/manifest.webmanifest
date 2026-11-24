@@ -1,0 +1,16 @@
+{
+  "name": "Arundhati Nakshatra",
+  "short_name": "Nakshatra",
+  "description": "Vedic astrology by K.N. Rao principles — kundali, analysis, chat and appointments",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff6f9",
+  "theme_color": "#f7a8c4",
+  "icons": [
+    { "src": "/static/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/static/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/static/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

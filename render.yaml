@@ -1,0 +1,24 @@
+# Render Blueprint — free web service for Arundhati Nakshatra.
+# Data lives in a free Neon Postgres database (DATABASE_URL), because free Render
+# services lose their local files whenever they restart or spin down.
+services:
+  - type: web
+    name: arundhati-nakshatra
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python backend/main.py
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: HOST
+        value: 0.0.0.0
+      - key: APP_PASSWORD        # the password you will type on the login screen
+        sync: false
+      - key: DATABASE_URL        # Neon connection string (postgresql://...)
+        sync: false
+      - key: GEMINI_API_KEY      # optional: free key from aistudio.google.com/apikey
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
